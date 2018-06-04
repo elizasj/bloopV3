@@ -2,6 +2,7 @@
   "name": "threejs_audio",
   "version": "1.0.0",
   "description": "",
+  "main": "src/index.js",
   "scripts": {
     "start": "budo src/index.js --open --live -- -t babelify",
     "build": "browserify -v -d src/index.js -t babelify -t > index.js"
