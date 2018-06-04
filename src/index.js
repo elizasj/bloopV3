@@ -88,7 +88,7 @@ backLight.position.x = -20;
 //model
 var loader = new THREE.OBJLoader();
 //load a resource
-loader2.load(
+loader.load(
   // resource URL
   'src/objects/model.obj',
   // called when resource is loaded
