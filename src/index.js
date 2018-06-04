@@ -9,6 +9,7 @@ import {
   MeshBasicMaterial,
   Group
 } from 'three';
+
 import * as THREE from 'three';
 
 import loop from 'raf-loop';
@@ -17,7 +18,6 @@ import resize from 'brindille-resize';
 import OBJLoader from 'three-obj-loader';
 import average from 'analyser-frequency-average';
 
-//import OrbitControls from './js/OrbitControls';
 import {
   analyser1,
   freq1,
@@ -88,7 +88,8 @@ backLight.position.x = -20;
 //model
 var loader = new THREE.OBJLoader();
 //load a resource
-loader.load(
+loader2.load(
+  // resource URL
   'src/objects/model.obj',
   // called when resource is loaded
   function(object) {
