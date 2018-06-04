@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Bloop Budo</title>
+
+    <style>
+        html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            color: #000c;
+        }
+
+        button {
+            outline: none;
+            height: 40px;
+            text-align: center;
+            background: #fff0;
+            border: none;
+            border-bottom: 2px solid #000c;
+            letter-spacing: 1px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        a {
+            text-decoration: none;
+            color: #000c;
+            padding: 0 4px 0 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #info {
+            z-index: 100;
+        }
+
+        .container {
+            position: absolute;
+            display: flex;
+            z-index: 99;
+            /* border: 2px dashed blueviolet; */
+            width: 100vw;
+            height: 100vh;
+            justify-content: space-between;
+            flex-direction: column;
+        }
+
+        .reset {
+            /* border: 2px dashed palegreen; */
+            display: flex;
+            justify-content: start;
+            margin: 4em 4em 0 4em;
+        }
+
+        .content {
+            height: calc(75vh / 2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: start;
+            /* border: 2px dashed greenyellow; */
+            padding: 2em;
+            margin: 4em;
+        }
+
+        .fadeOut {
+            animation: fadeOut .25s linear forwards;
+        }
+
+        .fadeIn {
+            animation: fadeIn .75s linear forwards;
+        }
+
+        .fadeButton {
+            opacity: 100;
+        }
+
+        .resetButton {
+            opacity: 0;
+        }
+
+        .blurb {
+            width: 20em;
+            text-align: justify;
+        }
+
+        .footer {
+            /* border: 2px dashed orangered; */
+            display: flex;
+            justify-content: end;
+            margin: 0 4em 4em 4em;
+        }
+
+        @keyframes fadeOut {
+            100% {
+                opacity: 0;
+            }
+            0% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            100% {
+                opacity: 1;
+            }
+            0% {
+                opacity: 0;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <script id="vertexShader" type="x-shader/x-vertex">
+    // gl position
+    varying vec2 vUv; // bridge between 
+    void main() {
+        vUv = uv; 
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+    // what it looks like
+    varying vec2 vUv;
+
+    uniform float time;
+    uniform vec2 resolution;
+    uniform sampler2D texture; // grap the three.js texture (w the pebbles .. but could be any three.js texture )
+
+    uniform vec4 frequencies1; // bass - 
+    uniform vec4 frequencies2; // bubbles - 
+    uniform vec4 frequencies3; // kick - 
+    uniform vec4 frequencies4; // pad -
+    uniform vec4 frequencies5; // texture -
+    uniform vec4 frequencies6; // bubbles_high  
+
+    vec2 random2(vec2 st){
+        st = vec2( dot(st,vec2(127.1,311.7-(frequencies2.x * 0.000005 ))),
+                  dot(st,vec2(269.5,183.3)) );
+        
+        return -1. + (2.0-(frequencies4.x *(frequencies4.x * 5.5)))*fract(sin(st)*4378.5453123 * (frequencies3.x *(frequencies3.x * .0000000000005)));
+    
+        //  return -1. + (2.0-(frequencies4.x *(frequencies4.x * 5.5)))*fract(sin(st)*43758.5453123);
+    }
+
+    float noise(vec2 st) {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+    
+        vec2 u = f*f*(3.0-2.0*f);
+    
+        return mix( mix( dot( random2(i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ),
+                         dot( random2(i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
+                    mix( dot( random2(i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ),
+                         dot( random2(i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
+    }
+        
+    void main() {
+        vec2 uv = vUv;
+            
+        vec3 color = vec3(0.0);
+    
+        // light time base anim
+         float t = abs(1.0-sin(time * frequencies2.x))*.030;
+    
+        // Comment and uncomment the following lines:
+        uv += noise(uv/frequencies1.x)*(2.5*frequencies1.x)*t; // Animate the coordinate space
+    
+    
+        color = vec3(0.763 + (frequencies6.x * (frequencies6.x * 5.5) ),1. + (frequencies1.x * (frequencies1.x * 6.5)),0.180 + (frequencies1.x *(frequencies6.x * 2.5))) * smoothstep(.58 * frequencies5.x,.5 + frequencies6.x,noise(uv)); // Big color drops
+    
+        color += smoothstep(.15,.2,noise(uv*10.)); // Black splatter
+        color -= smoothstep(.35-((frequencies3.x)*(.5*frequencies3.x)),.4,noise(uv*(10. - frequencies2.x))); // Holes on splatter
+    
+        gl_FragColor = vec4(1.-color,1.0);
+    
+        gl_FragColor = max(gl_FragColor, texture2D(texture, uv) );
+    }
+    
+    </script>
+
+    <div id="info" class="container">
+        <div class="reset">
+            <button class="resetButton" onclick="window.location.reload()">reset</button>
+        </div>
+        <div class="content">
+            <h1 class="title">bloop</h1>
+            <div class="blurb">
+                <p>bloop is a generative sound visualization experiment, so make sure your tab's audio icon is set to 'on',
+                    otherwise nothing will happen on your screen 🔊</p>
+                <p> plays well with Chrome & Firefox. Best experienced with headphones 🎧</p>
+            </div>
+            <button class="fadeButton">start</button>
+        </div>
+        <div class="footer">
+            made w/
+            <a href="https://www.ableton.com/en/" target="_blank">ableton live</a>,
+            <a href="https://threejs.org/" target="_blank">three.js</a> &
+            <a href="https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language" target="_blank">glsl</a> by
+            <a href="http://elizasj.com/" target="_blank">elizasj</a>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
